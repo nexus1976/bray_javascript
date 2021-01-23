@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * {box-sizing: border-box}
+    img {vertical-align: middle;}
+
+    /* Slideshow container */
+    .slideshow-container {
+      height: 200px;
+      width: 300px;
+      position: relative;
+      margin: auto;
+    }
+    .slideshow-container img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    /* Next & previous buttons */
+    .prev, .next {
+      cursor: pointer;
+      position: absolute;
+      top: 50%;
+      width: auto;
+      padding: 16px;
+      margin-top: -22px;
+      color: rgba(128, 121, 121, 0.753);
+      font-weight: bold;
+      font-size: 18px;
+      transition: 0.6s ease;
+      border-radius: 0 3px 3px 0;
+    }
+
+    /* Position the "next button" to the right */
+    .next {
+      right: 0;
+      border-radius: 3px 0 0 3px;
+    }
+
+    /* On hover, add a grey background color */
+    .prev:hover, .next:hover {
+      background-color: #f1f1f1;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 style="text-align:center">Multiple Slideshows</h2>
+
+  <p>Slideshow 1:</p>
+  <div class="slideshow-container" id="slideshow1" data-visible-image="0">
+    <div class="image-container">
+      <img src="image1.jpg">
+    </div>
+
+    <div class="image-container">
+      <img src="image2.jpg">
+    </div>
+
+    <div class="image-container">
+      <img src="image3.jpg">
+    </div>
+
+    <a class="prev" onclick="decrementImage('slideshow1')">&#10094;</a>
+    <a class="next" onclick="incrementImage('slideshow1')">&#10095;</a>
+  </div>
+
+  <p>Slideshow 2:</p>
+  <div class="slideshow-container" id="slideshow2" data-visible-image="0">
+    <div class="image-container">
+      <img src="image4.jpg">
+    </div>
+
+    <div class="image-container">
+      <img src="image3.jpg">
+    </div>
+
+    <div class="image-container">
+      <img src="image2.jpg">
+    </div>
+
+    <a class="prev" onclick="decrementImage('slideshow2')">&#10094;</a>
+    <a class="next" onclick="incrementImage('slideshow2')">&#10095;</a>
+  </div>
+
+  <p>Slideshow 3 (has the same config as slideshow 1):</p>
+  <div class="slideshow-container" id="slideshow3" data-visible-image="0">
+    <div class="image-container">
+      <img src="image1.jpg">
+    </div>
+
+    <div class="image-container">
+      <img src="image2.jpg">
+    </div>
+
+    <div class="image-container">
+      <img src="image3.jpg">
+    </div>
+
+    <a class="prev" onclick="decrementImage('slideshow3')">&#10094;</a>
+    <a class="next" onclick="incrementImage('slideshow3')">&#10095;</a>
+  </div>  
+
+  <script>
+    // we're safe to just start running javascript at this point because all of the DOM elements have loaded since this script is executing as the last thing on the page itself
+    const slideShows = document.querySelectorAll('.slideshow-container'); // gets all the DOM objects with the class of slideshow-container
+    let slideShowDictionary = {}; // initializes a dictionary (which is a simple key/value pair) so that we can easily access our slideshow-container objects later by their id
+    
+    // let's have a generic function that will take in a slideshowid and make ALL of the images hidden
+    const hideAllSlideShowImages = ((slideShowId) => {
+      const slideShow = slideShowDictionary[slideShowId];
+      if (slideShow) {
+        const images = slideShow.querySelectorAll('img');
+        images.forEach((valueImg, indexImg, objectImg) => {
+            valueImg.hidden = true;
+        });        
+      }
+    });
+
+    // let's have a generic function that will take in a slideshowid and make the image index in the data-visible-image attribute become visible while making the rest not visible (which is in essence what an image carousel / slideshow object is...just a container of images where only one image at a time is visible)
+    const showSlideShowVisibleImage = ((slideShowId) => {
+      const slideShow = slideShowDictionary[slideShowId];
+      if (slideShow) {
+        const visibleImageIndex = slideShow.dataset.visibleImage;
+        slideShow.querySelectorAll('img')[visibleImageIndex].hidden = false;
+      }
+    });
+    
+    const incrementImage = ((slideShowId) => {
+      const slideShow = slideShowDictionary[slideShowId];
+      if (slideShow) {
+        const imagesCount = slideShow.querySelectorAll('img').length;
+        const currentVisibleImageIndex = slideShow.dataset.visibleImage;
+        if (currentVisibleImageIndex == (imagesCount - 1)) {
+          slideShow.dataset.visibleImage = 0; // we're at the last image, so increment back around to the first image
+        } else {
+          slideShow.dataset.visibleImage++; // we're somewhere before the last image so just do a simple increment to the next image
+        }
+        // now that we've calculate which image should be visible, let's make them all invisible and then turn on the one that's been marked to be visible
+        hideAllSlideShowImages(slideShowId);
+        showSlideShowVisibleImage(slideShowId);        
+      }
+    });
+
+    const decrementImage = ((slideShowId) => {
+      const slideShow = slideShowDictionary[slideShowId];
+      if (slideShow) {
+        const imagesCount = slideShow.querySelectorAll('img').length;
+        const currentVisibleImageIndex = slideShow.dataset.visibleImage;
+        if (currentVisibleImageIndex == 0) {
+          slideShow.dataset.visibleImage = (imagesCount - 1); // we're at the first image, so decrement back around to the last image
+        } else {
+          slideShow.dataset.visibleImage--; // we're somewhere past the first image so just do a simple decrement to go to the previous image
+        }
+        // now that we've calculate which image should be visible, let's make them all invisible and then turn on the one that's been marked to be visible
+        hideAllSlideShowImages(slideShowId);
+        showSlideShowVisibleImage(slideShowId);
+      }
+    });
+
+    // so now that we've set up our reusable functions, let's iterate over all of the slideshow-containers that we selected in the 1st line of code here and take some action on it (so long as it's not undefined)
+    slideShows.forEach((valueSlideShow, indexSlideShow, objectSlideShow) => {
+      if (valueSlideShow) {
+        // so here we tested that the valueSlideShow is not undefined by use of the if statement. Let's use this object now and stick it into our dictionary and key it using its id
+        slideShowDictionary[valueSlideShow.id] = valueSlideShow;
+
+        // so we know that each valueSlideShow (which are just the divs containing the slideshow-container class) has a series of img elements in it...let's use our generic function to initialize them to hidden
+        hideAllSlideShowImages(valueSlideShow.id);
+        // now let's call our function that makes the currently visible image come back to visible (note that we use the data- tag in the markup above to initialize the first visible image to the 0th image (aka the 1st image) and we'll continue to use this attribute to store our currently visible image for that image container)
+        showSlideShowVisibleImage(valueSlideShow.id);
+      }
+    });
+  </script>
+</body>
+</html> 
